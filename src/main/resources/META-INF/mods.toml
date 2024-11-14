@@ -14,7 +14,7 @@ credits = '''
 Ridanisaurus - For many item and block textures.
 '''
 logoFile = "logo.png"
-description = '''Cosmere is a library mod, meant to be used with it's modules that add features from Brandon Sanderson's Cosmere universe.'''
+description = '''Cosmere is a library mod, meant to be used with it's modules that add features from Brandon Sanderson's Cosmere universe. Slightly modified by Ponchisao326 to update info on a custom database'''
 
 [[dependencies.cosmere]]
 modId = "minecraft"
