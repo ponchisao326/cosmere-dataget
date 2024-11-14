@@ -4,6 +4,8 @@
 
 package leaf.cosmere.common.commands.subcommands;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -44,6 +46,34 @@ public class ManifestationCommand extends ModCommand
 
 		return SINGLE_SUCCESS;
 	}
+
+	public static JsonObject reportPowersOnJoin(ServerPlayer player) {
+		JsonObject powersJson = new JsonObject();
+		JsonArray powersArray = new JsonArray();
+
+		SpiritwebCapability.get(player).ifPresent(spiritweb -> {
+			// Agregar el nombre del jugador al JSON
+			powersJson.addProperty("player", player.getName().getString());
+
+			// Obtener manifestaciones disponibles para el jugador
+			for (Manifestation manifestation : spiritweb.getAvailableManifestations()) {
+				JsonObject powerObject = new JsonObject();
+				double baseStrength = manifestation.getStrength(spiritweb, true);
+				double totalStrength = manifestation.getStrength(spiritweb, false);
+
+				powerObject.addProperty("name", manifestation.getTextComponent().getString());
+				powerObject.addProperty("baseStrength", baseStrength);
+				powerObject.addProperty("totalStrength", totalStrength);
+				powersArray.add(powerObject);
+			}
+
+			powersJson.add("powers", powersArray);
+		});
+
+		return powersJson;
+	}
+
+
 
 	public static void ReportPowersFoundOnPlayer(CommandContext<CommandSourceStack> context, ServerPlayer player)
 	{
