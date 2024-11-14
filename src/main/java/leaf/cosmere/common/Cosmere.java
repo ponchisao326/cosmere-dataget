@@ -56,7 +56,6 @@ public class Cosmere
 		//Set our version number to match the mods.toml file, which matches the one in our build.gradle
 		versionNumber = new Version(ModLoadingContext.get().getActiveContainer());
 
-
 		//Register our deferred registries
 		ItemsRegistry.ITEMS.register(modBus);
 		BlocksRegistry.BLOCKS.register(modBus);
