@@ -45,7 +45,7 @@ public class CosmereEffectCommand extends ModCommand
 								.executes(CosmereEffectCommand::clear)));
 	}
 
-	private static int checkEffects(CommandContext<CommandSourceStack> context) throws CommandSyntaxException
+	public static int checkEffects(CommandContext<CommandSourceStack> context) throws CommandSyntaxException
 	{
 
 		Collection<ServerPlayer> players = getPlayers(context, 3);
@@ -56,6 +56,36 @@ public class CosmereEffectCommand extends ModCommand
 		}
 
 		return SINGLE_SUCCESS;
+	}
+
+	public static int checkEffectsOnJoin(ServerPlayer player) {
+		CommandSourceStack source = player.createCommandSourceStack();
+		reportEffectsFoundOnPlayerOnJoin(source, player);
+		return SINGLE_SUCCESS;
+	}
+
+	private static void reportEffectsFoundOnPlayerOnJoin(CommandSourceStack source, ServerPlayer player) {
+		SpiritwebCapability.get(player).ifPresent(spiritweb -> {
+			MutableComponent found = Component.translatable(Constants.Strings.EFFECTS_FOUND, TextHelper.getPlayerTextObject(player.getLevel(), player.getUUID()));
+			StringBuilder stringBuilder = new StringBuilder();
+
+			for (Map.Entry<UUID, CosmereEffectInstance> entry : spiritweb.getEffects()) {
+				MutableComponent baseText = (MutableComponent) entry.getValue().getTextComponent();
+				stringBuilder.append("Ticks Remaining: ").append(entry.getValue().getDuration()).append("\n");
+				stringBuilder.append("Attribute Multiplier: x").append(entry.getValue().getStrength()).append("\n");
+
+				for (AttributeModifierInfo attributeModifierInfo : entry.getValue().getEffect().getAttributeModifiers().values()) {
+					stringBuilder.append(attributeModifierInfo.getAttribute().getDescriptionId())
+							.append(": ").append(attributeModifierInfo.getAmount())
+							.append(" : Operation: ").append(attributeModifierInfo.getOperation()).append("\n");
+				}
+
+				// Se pueden agregar dinámicos aquí si es necesario
+
+				found.append(TextHelper.createTextWithTooltip(baseText, Component.literal(stringBuilder.toString())));
+				stringBuilder.setLength(0); // Resetear el stringBuilder
+			}
+		});
 	}
 
 	private static void reportEffectsFoundOnPlayer(CommandContext<CommandSourceStack> context, ServerPlayer player)
