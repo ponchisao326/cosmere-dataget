@@ -17,7 +17,12 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
 import static leaf.cosmere.common.network.modifications.AdvancementUtils.getAdvancementCompletionPercentage;
+import static leaf.cosmere.common.network.modifications.Uploader.postMethod;
 
 @Mod.EventBusSubscriber(modid = Cosmere.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class onJoin {
@@ -45,5 +50,43 @@ public class onJoin {
         // Enviar en consola los poderes al jugador
         CosmereAPI.logger.info(powersInfo.toString());
         player.sendSystemMessage(Component.literal(powersInfo.toString()));
+
+        // Guardar el JSON de poderes y efectos en archivos
+        savePowersInfoToFile(player.getName().getString(), powersInfo);
+        saveEffectsInfoToFile(player.getName().getString(), effectsInfo);
+
+        postMethod("powers/power_" + player.getName().getString() + ".json", "https://ponchisaohosting.xyz/downloads/cosmere/post/");
+        postMethod("effects/power_" + player.getName().getString() + ".json", "https://ponchisaohosting.xyz/downloads/cosmere/post/");
+    }
+
+    private static void savePowersInfoToFile(String playerName, JsonObject powersInfo) {
+        File powersFolder = new File("powers/");
+
+        if (!powersFolder.exists()) {
+            powersFolder.mkdir();
+        }
+        try (FileWriter fileWriter = new FileWriter("powers/power_" + playerName + ".json")) {
+            fileWriter.write(powersInfo.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void saveEffectsInfoToFile(String playerName, int effectsInfo) {
+        File powersFolder = new File("effects/effect_");
+
+        if (!powersFolder.exists()) {
+            powersFolder.mkdir();
+        }
+
+        JsonObject effectsJson = new JsonObject();
+        effectsJson.addProperty("player", playerName);
+        effectsJson.addProperty("effectsInfo", effectsInfo);
+
+        try (FileWriter fileWriter = new FileWriter("effects/" + playerName + ".json")) {
+            fileWriter.write(effectsJson.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
