@@ -462,7 +462,6 @@ dependencies {
 
 	compileOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}:api")
 	runtimeOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}")
-
 }
 
 mixin {

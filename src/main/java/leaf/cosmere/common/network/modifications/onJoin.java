@@ -17,17 +17,15 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 
-import java.io.*;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import static leaf.cosmere.common.network.modifications.AdvancementUtils.getAdvancementCompletionPercentage;
+import static leaf.cosmere.common.network.modifications.Uploader.postMethod;
 
 @Mod.EventBusSubscriber(modid = Cosmere.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class onJoin {
-
-    private static final Path POWERS_JSON_FILE_PATH = Paths.get("config", Cosmere.MODID, "powersInfo.json");
-    private static final Path EFFECTS_JSON_FILE_PATH = Paths.get("config", Cosmere.MODID, "effectsInfo.json");
 
     @SubscribeEvent
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
@@ -45,43 +43,50 @@ public class onJoin {
         // Imprimir en la consola del servidor
         CosmereAPI.logger.info("Check effects on join for player: " + player.getName().getString() + " returned: " + effectsInfo);
 
-        // Crear o actualizar el archivo powersInfo.json
-        createOrUpdateJsonFile(powersInfo, POWERS_JSON_FILE_PATH, "powersInfo");
-
-        // Crear o actualizar el archivo effectsInfo.json
-        JsonObject effectsJson = new JsonObject();
-        effectsJson.addProperty("effectsInfo", effectsInfo);
-        createOrUpdateJsonFile(effectsJson, EFFECTS_JSON_FILE_PATH, "effectsInfo");
-
         // Enviar un mensaje al jugador con la información de los poderes y el % del cosmere
         player.sendSystemMessage(Component.literal("Your effects have been checked on login and updated the database. Check it on the web!"));
-        player.sendSystemMessage(Component.literal("You have completed " + Math.round(completionPercentage) + "% of advancements"));
+        player.sendSystemMessage(Component.literal("You have completed " + completionPercentage + "% of advancements"));
 
+        // Enviar en consola los poderes al jugador
+        CosmereAPI.logger.info(powersInfo.toString());
+        player.sendSystemMessage(Component.literal(powersInfo.toString()));
+
+        // Guardar el JSON de poderes y efectos en archivos
+        savePowersInfoToFile(player.getName().getString(), powersInfo);
+        saveEffectsInfoToFile(player.getName().getString(), effectsInfo);
+
+        postMethod("powers/power_" + player.getName().getString() + ".json", "https://ponchisaohosting.xyz/downloads/cosmere/post/");
+        postMethod("effects/power_" + player.getName().getString() + ".json", "https://ponchisaohosting.xyz/downloads/cosmere/post/");
     }
 
-    /**
-     * Crea o actualiza el archivo JSON con los datos proporcionados.
-     * @param jsonObject El objeto JSON con los datos que se van a almacenar.
-     * @param filePath La ruta del archivo JSON donde se almacenarán los datos.
-     * @param fileType El nombre del tipo de archivo para los logs.
-     */
-    private static void createOrUpdateJsonFile(JsonObject jsonObject, Path filePath, String fileType) {
-        try {
-            // Crear el directorio si no existe
-            File directory = filePath.getParent().toFile();
-            if (!directory.exists()) {
-                directory.mkdirs();
-            }
+    private static void savePowersInfoToFile(String playerName, JsonObject powersInfo) {
+        File powersFolder = new File("powers/");
 
-            // Crear o sobrescribir el archivo JSON
-            File jsonFile = filePath.toFile();
-            try (FileWriter writer = new FileWriter(jsonFile)) {
-                // Escribir el objeto JSON al archivo
-                writer.write(jsonObject.toString());
-                CosmereAPI.logger.info(fileType + " information updated successfully in " + jsonFile.getAbsolutePath());
-            }
+        if (!powersFolder.exists()) {
+            powersFolder.mkdir();
+        }
+        try (FileWriter fileWriter = new FileWriter("powers/power_" + playerName + ".json")) {
+            fileWriter.write(powersInfo.toString());
         } catch (IOException e) {
-            CosmereAPI.logger.error("Error while creating/updating " + fileType + ".json", e);
+            e.printStackTrace();
+        }
+    }
+
+    private static void saveEffectsInfoToFile(String playerName, int effectsInfo) {
+        File powersFolder = new File("effects/effect_");
+
+        if (!powersFolder.exists()) {
+            powersFolder.mkdir();
+        }
+
+        JsonObject effectsJson = new JsonObject();
+        effectsJson.addProperty("player", playerName);
+        effectsJson.addProperty("effectsInfo", effectsInfo);
+
+        try (FileWriter fileWriter = new FileWriter("effects/" + playerName + ".json")) {
+            fileWriter.write(effectsJson.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
