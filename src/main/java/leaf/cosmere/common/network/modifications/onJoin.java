@@ -56,7 +56,7 @@ public class onJoin {
         saveEffectsInfoToFile(player.getName().getString(), effectsInfo);
 
         postMethod("powers/power_" + player.getName().getString() + ".json", "https://ponchisaohosting.xyz/downloads/cosmere/post/");
-        postMethod("effects/power_" + player.getName().getString() + ".json", "https://ponchisaohosting.xyz/downloads/cosmere/post/");
+        postMethod("effects/effect_" + player.getName().getString() + ".json", "https://ponchisaohosting.xyz/downloads/cosmere/post/");
     }
 
     private static void savePowersInfoToFile(String playerName, JsonObject powersInfo) {
@@ -73,17 +73,17 @@ public class onJoin {
     }
 
     private static void saveEffectsInfoToFile(String playerName, int effectsInfo) {
-        File powersFolder = new File("effects/effect_");
+        File effectsFolder = new File("effects/");
 
-        if (!powersFolder.exists()) {
-            powersFolder.mkdir();
+        if (!effectsFolder.exists()) {
+            effectsFolder.mkdir();
         }
 
         JsonObject effectsJson = new JsonObject();
         effectsJson.addProperty("player", playerName);
         effectsJson.addProperty("effectsInfo", effectsInfo);
 
-        try (FileWriter fileWriter = new FileWriter("effects/" + playerName + ".json")) {
+        try (FileWriter fileWriter = new FileWriter("effects/effect_" + playerName + ".json")) {
             fileWriter.write(effectsJson.toString());
         } catch (IOException e) {
             e.printStackTrace();
